@@ -7,6 +7,7 @@ fn main() {
 
 fn get_external_ip() -> Result<String, minreq::Error> {
     let response = minreq::get("http://httpbin.org/ip")
+        .with_timeout(5)
         .send()?
         .json::<HashMap<String, String>>()?;
 
@@ -14,6 +15,6 @@ fn get_external_ip() -> Result<String, minreq::Error> {
     Ok(result.to_string())
 }
 
-fn display_ip(ip: &String) {
+fn display_ip(ip: &str) {
     println!("{}", ip);
 }
