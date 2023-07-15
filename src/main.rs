@@ -1,10 +1,35 @@
 use std::collections::HashMap;
 
 fn main() {
-    let ip = get_external_ip().expect("Error getting ip");
-    display_ip(&ip);
+    let mut counter = 0;
+    loop {
+        // Try 3 times then bail
+        if counter >= 3 {
+            break;
+        }
+
+        // Sleep for 1 second between tries
+        if counter > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(1000));
+        }
+
+        counter += 1;
+
+        let ip = get_external_ip();
+        match ip {
+            Ok(ip) => {
+                display_ip(&ip);
+                break;
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+                continue;
+            }
+        }
+    }
 }
 
+/// Get external IP address
 fn get_external_ip() -> Result<String, minreq::Error> {
     let response = minreq::get("http://httpbin.org/ip")
         .with_timeout(5)
@@ -15,6 +40,7 @@ fn get_external_ip() -> Result<String, minreq::Error> {
     Ok(result.to_string())
 }
 
+/// Display IP address
 fn display_ip(ip: &str) {
     println!("{}", ip);
 }
