@@ -15,8 +15,7 @@ fn main() {
 
         counter += 1;
 
-        let ip = get_external_ip();
-        match ip {
+        match get_external_ip() {
             Ok(ip) => {
                 display_ip(&ip);
                 break;
