@@ -1,29 +1,17 @@
 use std::collections::HashMap;
 
 fn main() {
-    let mut counter = 0;
-    loop {
-        // Try 3 times then bail
-        if counter >= 3 {
+    for iteration in 1..=3 {
+        if iteration > 1 {
+            eprintln!("Retrying in 1 second...");
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+
+        if let Ok(ip) = get_external_ip() {
+            display_ip(&ip);
             break;
-        }
-
-        // Sleep for 1 second between tries
-        if counter > 0 {
-            std::thread::sleep(std::time::Duration::from_millis(1000));
-        }
-
-        counter += 1;
-
-        match get_external_ip() {
-            Ok(ip) => {
-                display_ip(&ip);
-                break;
-            }
-            Err(e) => {
-                println!("Error: {}", e);
-                continue;
-            }
+        } else {
+            eprintln!("Error: Failed to retrieve external IP.");
         }
     }
 }
@@ -31,12 +19,15 @@ fn main() {
 /// Get external IP address
 fn get_external_ip() -> Result<String, minreq::Error> {
     let response = minreq::get("http://httpbin.org/ip")
-        .with_timeout(5)
+        .with_timeout(5) // Set a timeout of 5 seconds for the request
         .send()?
         .json::<HashMap<String, String>>()?;
 
-    let result = response.get("origin").unwrap();
-    Ok(result.to_string())
+    let ip = response.get("origin").unwrap_or_else(|| {
+        eprintln!("Error: 'origin' key not found in response.");
+        std::process::exit(1);
+    });
+    Result::Ok(ip.to_string())
 }
 
 /// Display IP address
